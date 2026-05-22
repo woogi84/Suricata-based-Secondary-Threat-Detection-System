@@ -1,4 +1,20 @@
 # -*- coding: utf-8 -*-
+# ============================================================
+# CICIDS CSV Dataset Lossless Merge Script
+# ------------------------------------------------------------
+# This script automatically merges multiple CSV files located
+# in the same directory into a single combined CSV file.
+#
+# Features:
+# - Reads all CSV files in the current folder
+# - Excludes the final merged output file itself
+# - Preserves all original data without modification
+# - Appends files sequentially into one dataset
+# - Prevents duplicate header rows
+# - Displays progress and total row counts
+#
+# Output:
+#   CICIDS_Total_Raw_Combined.csv
 import pandas as pd
 import os
 
