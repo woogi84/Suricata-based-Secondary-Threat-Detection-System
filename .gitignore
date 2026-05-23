@@ -1,0 +1,47 @@
+# 모델 파일 (용량 큼 — 학습 후 로컬 생성)
+*.pkl
+cic_rf_model.pkl
+cic_label_map.pkl
+
+# 대용량 데이터셋 (공개 데이터 — unb.ca에서 다운로드)
+data/
+*.csv.gz
+CICIDS_*.csv
+CICIDS_Preprocessed*.csv
+
+# 입력/출력 CSV (results/predictions_cicflow.csv 샘플 제외)
+cicflow_output.csv
+cicflow_*.csv
+/cicflow_output.csv
+
+# PCAP 파일
+*.pcap
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# 에디터
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Suricata 로그 (로컬 생성)
+suricata/logs/
+fast.log
+eve.json
+suricata.log

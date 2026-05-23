@@ -1,0 +1,46 @@
+version: "3.8"
+
+networks:
+  cic_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  target:
+    image: vulnerables/web-dvwa
+    container_name: target
+    networks:
+      cic_net:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "8080:80"
+
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: suricata
+    network_mode: "service:target"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ./suricata/logs:/var/log/suricata
+      - ./suricata/rules:/etc/suricata/rules
+    command: -i eth0 --set outputs.1.eve-log.enabled=no
+    depends_on:
+      - target
+
+  attacker:
+    image: kalilinux/kali-rolling
+    container_name: attacker
+    networks:
+      cic_net:
+        ipv4_address: 172.20.0.20
+    stdin_open: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    command: /bin/bash
