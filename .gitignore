@@ -40,6 +40,12 @@ env/
 .DS_Store
 Thumbs.db
 
+# KISTI 대용량 파일 (로컬 생성)
+model_kisti_rf.pkl
+kisti/model_kisti_rf.pkl
+kisti/suricata_kisti_mapped*.csv
+kisti/kisti_mapped_attack.csv
+
 # Suricata 로그 (로컬 생성)
 suricata/logs/
 fast.log

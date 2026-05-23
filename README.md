@@ -1,7 +1,8 @@
-# ML-NIDS: CIC-IDS2017 기반 머신러닝 네트워크 침입 탐지 시스템
+# ML-NIDS: CIC-IDS2017 · KISTI 기반 머신러닝 네트워크 침입 탐지 시스템
 
-> CIC-IDS2017 공개 데이터셋으로 학습한 Random Forest 분류기를 Docker 기반 실험 환경에 적용,  
-> 실제 공격 트래픽을 탐지하는 **엔드-투-엔드 NIDS 파이프라인** 구현 프로젝트
+> 두 가지 공개 데이터셋(CIC-IDS2017, KISTI)으로 학습한 Random Forest 분류기를  
+> Docker 기반 실험 환경의 Suricata IDS에 적용하는 **엔드-투-엔드 NIDS 파이프라인** 구현 프로젝트.  
+> CIC 모델의 SSH Brute Force 탐지 성공과 KISTI 모델의 구조적 실패 원인까지 정직하게 분석합니다.
 
 ---
 
@@ -13,9 +14,10 @@
 4. [실험 환경](#실험-환경)
 5. [파이프라인](#파이프라인)
 6. [탐지 결과](#탐지-결과)
-7. [도메인 갭 분석](#도메인-갭-분석)
-8. [파일 구조](#파일-구조)
-9. [실행 방법](#실행-방법)
+7. [KISTI 파이프라인 & 실패 분석](#kisti-파이프라인--실패-분석)
+8. [도메인 갭 분석](#도메인-갭-분석)
+9. [파일 구조](#파일-구조)
+10. [실행 방법](#실행-방법)
 
 ---
 
@@ -38,6 +40,8 @@
 - Docker 네트워크 공유 방식(`network_mode: service:target`)으로 Suricata가 공격 트래픽 직접 감시
 - tcpdump → CICFlowMeter(Python) → ML 예측의 자동화 파이프라인 구현
 - **SSH Brute Force 실시간 탐지 성공** (신뢰도 65~79%)
+- 정상 트래픽(HTTP/HTTPS/DNS/NTP 등) 수동 생성 → **BENIGN 오탐 없음 검증** (`ml/demo_benign.py`)
+- KISTI 데이터셋 파이프라인 구현 및 **실패 원인 구조 분석** (데이터 불균형 · 피처 노이즈)
 - 도메인 갭(domain gap) 실증 분석 — CIC 기반 모델의 실전 배포 한계 도출
 
 ---
@@ -212,6 +216,58 @@ timestamp           src_ip        dst_ip        pred_name  confidence
 
 ---
 
+## KISTI 파이프라인 & 실패 분석
+
+CIC-IDS2017과 별도로, 국내 공개 데이터셋인 **KISTI**를 활용한 두 번째 파이프라인도 구현하였습니다.  
+결과적으로 KISTI 모델은 Suricata 실시간 트래픽을 **100% 정상으로 예측**합니다.  
+이 실패는 버그가 아니라 **데이터셋의 구조적 한계** 때문이며, 그 원인을 정직하게 분석했습니다.
+
+### KISTI 파이프라인
+
+```
+Suricata eve.json
+      ↓
+convert_evejson_kisti.py   (eve.json → KISTI 6-피처 CSV)
+      ↓
+model_kisti_rf.pkl         (6-class RF: Normal/Malware/WebAtk/Exploit/Scan)
+      ↓
+analyze.py / analyze_attack.py   (예측 결과 및 피처 중요도 분석)
+```
+
+### KISTI 모델 사용 피처 (6개)
+
+| 피처 | eve.json 매핑 |
+|------|---------------|
+| sourcePort | `src_port` |
+| destinationPort | `dest_port` |
+| protocol | `proto` (TCP=6, UDP=17, ICMP=1) |
+| eventCount | `flow.pkts_toserver + flow.pkts_toclient` |
+| duration | `flow.age` or `flow.end - flow.start` |
+| packetSize | `flow.bytes_toserver + flow.bytes_toclient` |
+
+### 실패 원인 요약
+
+| 원인 | 수치 |
+|------|------|
+| 극심한 클래스 불균형 | 공격 **19건** / 전체 66,610건 (0.028%) |
+| sourcePort 피처 중요도 | **39.1%** (임시 포트 — 무의미한 노이즈) |
+| 공격/정상 피처 분포 차이 | 거의 없음 (6개 피처로 구분 불가) |
+| 모델 예측 결과 | 전체 100% Normal 예측 |
+
+자세한 분석은 [kisti/kisti_failure_analysis.md](kisti/kisti_failure_analysis.md) 참고.
+
+### CIC vs KISTI 비교
+
+| 항목 | CIC-IDS2017 | KISTI |
+|------|-------------|-------|
+| 피처 수 | 11개 | 6개 |
+| 클래스 수 | 4개 | 5개 |
+| 공격 비율 | 14.2% | **0.028%** |
+| SSH Brute 탐지 | **성공 (65~79%)** | 실패 |
+| 구조적 한계 | 도메인 갭 | 데이터 불균형 + 피처 노이즈 |
+
+---
+
 ## 도메인 갭 분석
 
 SSH Brute Force는 탐지되지만 DDoS/PortScan은 탐지되지 않습니다.  
@@ -246,10 +302,17 @@ ML 기반 NIDS의 실전 배포 시 **도메인 적응(Domain Adaptation)** 이 
 nids-cic-rf/
 ├── README.md
 │
-├── ml/
+├── ml/                          # CIC-IDS2017 파이프라인
 │   ├── train_rf.py              # Random Forest 학습 스크립트
 │   ├── predict_cicflow.py       # CICFlowMeter CSV → 탐지 결과
-│   └── results_summary.py      # 탐지 결과 요약 출력 (데모용)
+│   ├── results_summary.py       # 탐지 결과 요약 출력 (데모용)
+│   └── demo_benign.py           # 정상 트래픽 BENIGN 탐지 검증 데모
+│
+├── kisti/                       # KISTI 파이프라인 (실패 분석 포함)
+│   ├── convert_evejson_kisti.py # eve.json → KISTI 포맷 CSV 변환
+│   ├── analyze.py               # 전체 데이터 모델 예측 및 검증
+│   ├── analyze_attack.py        # 공격 트래픽만 집중 분석
+│   └── kisti_failure_analysis.md# 실패 원인 구조 분석 문서
 │
 ├── lab/
 │   ├── docker-compose.yml       # 실험 환경 구성
@@ -257,20 +320,20 @@ nids-cic-rf/
 │   ├── pipeline4.sh             # attack4 전체 파이프라인 자동화
 │   ├── pipeline5.sh             # SSH Brute Force 파이프라인 자동화
 │   ├── setup_ssh.sh             # Target 컨테이너 SSH 서버 설치
-│   └── cicflowmeter_patch.md   # CICFlowMeter Python 패키지 패치 가이드
+│   └── cicflowmeter_patch.md    # CICFlowMeter Python 패키지 패치 가이드
 │
 ├── results/
 │   └── predictions_cicflow.csv  # 탐지 결과 샘플 (SSH Brute Force 37건)
 │
 ├── docs/
-│   └── domain_gap_analysis.md  # 도메인 갭 상세 분석
+│   └── domain_gap_analysis.md   # 도메인 갭 상세 분석
 │
 ├── .gitignore
 └── requirements.txt
 ```
 
-> `cic_rf_model.pkl` (31 MB) 과 학습 데이터는 용량 문제로 제외.  
-> 모델은 CIC-IDS2017 데이터셋으로 `ml/train_rf.py`를 실행해 직접 생성하세요.
+> `cic_rf_model.pkl` (31 MB), `model_kisti_rf.pkl` (234 MB), 학습 데이터는 용량 문제로 제외.  
+> CIC 모델은 CIC-IDS2017 데이터셋으로 `ml/train_rf.py`를 실행해 직접 생성하세요.
 
 ---
 
@@ -316,6 +379,30 @@ python ml/results_summary.py         # 결과 요약 출력
 # 포함된 샘플 데이터로 바로 확인
 python ml/results_summary.py results/predictions_cicflow.csv
 ```
+
+### 5. BENIGN 오탐 없음 검증
+
+```bash
+# 수동으로 만든 정상 트래픽(HTTP/HTTPS/DNS/NTP 등)을 모델에 입력
+# → 모두 BENIGN으로 분류되는지 확인
+python ml/demo_benign.py
+```
+
+### 6. KISTI 파이프라인 실행
+
+```bash
+# (1) Suricata eve.json → KISTI 포맷 CSV 변환
+python kisti/convert_evejson_kisti.py /path/to/eve.json kisti/suricata_kisti_mapped.csv
+
+# (2) 전체 데이터 모델 예측
+python kisti/analyze.py kisti/model_kisti_rf.pkl kisti/suricata_kisti_mapped.csv
+
+# (3) 공격 트래픽만 집중 분석
+python kisti/analyze_attack.py kisti/model_kisti_rf.pkl kisti/kisti_mapped_attack.csv
+```
+
+> `model_kisti_rf.pkl` (234 MB)는 .gitignore에 의해 제외됩니다.  
+> 실패 분석 문서는 모델 없이도 확인 가능합니다: [kisti/kisti_failure_analysis.md](kisti/kisti_failure_analysis.md)
 
 ---
 
