@@ -250,7 +250,7 @@ analyze.py / analyze_attack.py   (예측 결과 및 피처 중요도 분석)
 
 ### CIC vs KISTI 비교
 
-| 항목  CIC-IDS2017 | KISTI |
+| 항목 | CIC-IDS2017 | KISTI |
 |------|-------------|-------|
 | 피처 수 | 11개 | 6개 |
 | 클래스 수 | 4개 | 5개 |
