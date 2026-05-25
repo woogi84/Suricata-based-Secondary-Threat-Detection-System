@@ -159,7 +159,7 @@ print(f"\n  전체: {total:,}건")
 
 attacks = df_out[df_out["pred_label"] != 0].copy()
 if len(attacks) > 0:
-    print(f"\n  ★ 탐지된 공격 플로우: {len(attacks):,}건")
+    print(f"\n  탐지된 공격 플로우: {len(attacks):,}건")
     show_cols = [c for c in ["timestamp", "src_ip", "dst_ip", "dst_port",
                               "protocol", "pred_name", "confidence"] if c in attacks.columns]
     if not show_cols:
