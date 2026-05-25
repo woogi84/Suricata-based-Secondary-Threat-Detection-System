@@ -1,6 +1,6 @@
 """
 results_summary.py
-탐지 결과 요약 출력 스크립트 — GitHub 데모용
+탐지 결과 요약 출력 스크립트 
 
 사용법:
   python ml/results_summary.py                            # 기본 경로
