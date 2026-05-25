@@ -5,17 +5,15 @@
 CIC-IDS2017 데이터셋으로 학습한 Random Forest 모델을 Docker 기반 실험 환경에 배포했을 때,  
 SSH Brute Force는 탐지되었지만 DDoS와 PortScan은 탐지에 실패했습니다.
 
-이 문서는 **왜 이런 결과가 나왔는지**를 피처 분포 비교를 통해 실증 분석합니다.
-
 ---
 
 ## 공격별 탐지 결과
 
 | 공격 | 결과 | 탐지율 | 평균 신뢰도 |
 |------|------|--------|------------|
-| SSH Brute Force | ✅ 탐지 성공 | 37/37 (100%) | 76% |
-| PortScan (TCP SYN) | ⚠️ 부분 신호 | prob_PortScan 최대 32% | — |
-| DDoS (HTTP GET flood) | ❌ 미탐지 | prob_DDoS ≈ 0% | — |
+| SSH Brute Force | 탐지 성공 | 37/37 (100%) | 76% |
+| PortScan (TCP SYN) | 부분 탐지 | prob_PortScan 최대 32% | — |
+| DDoS (HTTP GET flood) | 미탐지 | prob_DDoS ≈ 0% | — |
 
 ---
 
