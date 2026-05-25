@@ -194,9 +194,9 @@ timestamp           src_ip        dst_ip        pred_name  confidence
 ---
 
 ## KISTI 파이프라인 & 실패 분석
-CIC 이전 실패한 한국과학기술정보원(KISTI)에서 제공한 데이터셋을 기반으로 한 랜덤 포레스트 머신러닝 모델입니다. 
-결과적으로 KISTI 모델은 Suricata의 비정상 트래픽을 100% 정상으로 예측합니다.  
-이 실패는 버그가 아니라 데이터셋의 구조적 한계때문입니다.
+CIC 이전 실패한 한국과학기술정보원(KISTI)에서 제공받은 데이터셋을 기반으로 한 랜덤 포레스트 머신러닝 모델입니다. 
+결과적으로 KISTI 모델은 Suricata의 비정상 트래픽을 100% 정상으로 예측합니다.(예측 실패)  
+
 ### KISTI 파이프라인
 
 ```
@@ -225,7 +225,7 @@ analyze.py / analyze_attack.py   (예측 결과 및 피처 중요도 분석)
 | 원인 | 수치 |
 |------|------|
 | 극심한 클래스 불균형 | 공격 19건 / 전체 66,610건 (0.028%) |
-| sourcePort 피처 중요도 | 39.1% (임시 포트 — 무의미한 노이즈) |
+| sourcePort 피처 중요도 | 39.1% (무의미한 노이즈) |
 | 공격/정상 피처 분포 차이 | 거의 없음 (6개 피처로 구분 불가) |
 | 모델 예측 결과 | 전체 100% Normal 예측 |
 
@@ -259,12 +259,6 @@ SSH Brute Force는 탐지되지만 DDoS/PortScan은 탐지되지 않습니다.
 
 자세한 분석은 [docs/domain_gap_analysis.md](docs/domain_gap_analysis.md) 참고.
 
-### 결론
-
-ML 기반 NIDS의 실전 배포 시 도메인 적응(Domain Adaptation) 이 필수입니다.
-
-- 프로토콜 표준화 수준이 높은 공격 (SSH Brute Force): 환경 무관하게 탐지 가능
-- 환경 의존적 공격;(DDoS 타이밍, PortScan 응답 패턴): 학습 환경과 실전 환경의 피처 분포가 달라 오탐 발생
 
 ---
 
@@ -303,76 +297,6 @@ nids-cic-rf/
 ├── .gitignore
 └── requirements.txt
 ```
-
-
----
-
-## 실행 방법
-
-### 1. 환경 준비
-
-```bash
-# 의존성 설치
-pip install -r requirements.txt
-
-# Docker 실험 환경 시작
-cd lab
-docker compose up -d
-
-# Python cicflowmeter 패치 (Java CICFlowMeter 피처 호환)
-# 패치 내용: lab/cicflowmeter_patch.md 참고
-pip show cicflowmeter | grep Location
-```
-
-### 2. 모델 학습
-
-```bash
-# CIC-IDS2017 전처리 데이터 필요 (unb.ca/cic/datasets/ids-2017.html)
-python ml/train_rf.py path/to/CICIDS_Preprocessed_4class.csv
-# → cic_rf_model.pkl, cic_label_map.pkl 생성
-```
-
-### 3. 공격 실행 + 탐지
-
-```bash
-# SSH Brute Force 탐지 파이프라인 (탐지 성공)
-bash lab/pipeline5.sh
-
-# 탐지 결과 확인
-python ml/predict_cicflow.py         # cicflow_output.csv 자동 탐지
-python ml/results_summary.py         # 결과 요약 출력
-```
-
-### 4. 결과 확인 (샘플)
-
-```bash
-# 포함된 샘플 데이터로 바로 확인
-python ml/results_summary.py results/predictions_cicflow.csv
-```
-
-### 5. BENIGN 오탐 없음 검증
-
-bash
-# 수동으로 만든 비정상 트래픽(HTTP/HTTPS/DNS/NTP 등)을 모델에 입력
-# → 모두 BENIGN으로 분류되는지 확인
-python ml/demo_benign.py
-
-### 6. KISTI 파이프라인 실행
-
-```bash
-# (1) Suricata eve.json → KISTI 포맷 CSV 변환
-python kisti/convert_evejson_kisti.py /path/to/eve.json kisti/suricata_kisti_mapped.csv
-
-# (2) 전체 데이터 모델 예측
-python kisti/analyze.py kisti/model_kisti_rf.pkl kisti/suricata_kisti_mapped.csv
-
-# (3) 공격 트래픽만 집중 분석
-python kisti/analyze_attack.py kisti/model_kisti_rf.pkl kisti/kisti_mapped_attack.csv
-```
-
-> `model_kisti_rf.pkl` (234 MB)는 .gitignore에 의해 제외됩니다.  
-> 실패 분석 문서는 모델 없이도 확인 가능합니다: [kisti/kisti_failure_analysis.md](kisti/kisti_failure_analysis.md)
-
 ---
 
 ## 참고
