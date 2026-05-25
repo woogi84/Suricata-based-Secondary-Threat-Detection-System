@@ -7,14 +7,14 @@
 상용 IDS(Suricata)는 시그니처 기반 탐지로 알려진 공격만 잡습니다.  
 이 프로젝트는 공개 데이터셋(CIC-IDS2017)으로 학습한 ML 모델을 2차 탐지 레이어로 추가하여시그니처에 없는 공격 패턴을 탐지합니다.
 
-'''
+```
 [Suricata 1차 탐지] → 시그니처 미탐 트래픽
                               ↓
               [CICFlowMeter 피처 추출]
                               ↓
           [Random Forest 2차 탐지] → 공격 분류
-'''
 
+```
 - CIC-IDS2017 2,134,160개 플로우 → Random Forest 학습 
 - Docker 가상 환경 공격을 통해 Suricata-eve.json 추출
 - SSH Brute Force 실시간 탐지 성공 (신뢰도 65~79%)
