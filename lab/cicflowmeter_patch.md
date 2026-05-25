@@ -48,15 +48,9 @@ def get_packet_length(self, packet_direction=None) -> list:
             self.feature_extractor.packets]
 ```
 
-## 왜 이 패치가 필요한가?
+## 패치 이유
 
-| 항목 | Python cicflowmeter (기본) | Java CICFlowMeter (CIC-IDS2017 사용) |
-|------|---------------------------|--------------------------------------|
-| 패킷 길이 기준 | IP 헤더 포함 전체 길이 | TCP/UDP 페이로드만 |
-| SYN 패킷 길이 | 54 bytes (IP+TCP 헤더) | 0 bytes (페이로드 없음) |
-| SSH 플로우 fwd_pkt_len_mean | ~157 bytes | ~107 bytes |
-
-CIC-IDS2017 모델은 Java CICFlowMeter로 추출한 피처로 학습되었으므로,  
+CIC-IDS2017 모델은 Java CICFlowMeter로 추출한 피처로 학습되었으므로 
 Python 패키지도 동일한 방식으로 계산해야 피처 분포가 일치합니다.
 
 ## 검증
