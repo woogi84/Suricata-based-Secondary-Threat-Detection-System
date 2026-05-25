@@ -38,7 +38,7 @@
 │                                           ┌───────────▼───────────┐
 │                                           │         Target        │
 │                                           │      DVWA+Apache      │
-│                                           │     172.20.0.10    │  │
+│                                           │     172.20.0.10       │
 │                                           └───────────┬───────────┘
 └───────────────────────────────────────────────────────┘
                                                         │ tcpdump PCAP
@@ -80,9 +80,6 @@ attacker → target 공격 트래픽 전체를 Suricata의 eth0에서 직접 감
 
 ### 사용 피처 (11개)
 
-`Average Packet Size`는 Python/Java CICFlowMeter 간 계산 방식 차이로 인한 도메인 갭 발생 → 제외.
-
-
 | 피처 | 중요도 |
 |------|--------|
 | Destination Port | 24.6% |
@@ -97,15 +94,6 @@ attacker → target 공격 트래픽 전체를 Suricata의 eth0에서 직접 감
 | SYN Flag Count | 0.7% |
 | RST Flag Count | 0.0% |
 
-### 모델 성능 (CIC-IDS2017 테스트셋)
-
-| 클래스 | Precision | Recall | F1-score |
-|--------|-----------|--------|----------|
-| BENIGN | 0.9995 | 0.9963 | 0.9979 |
-| PortScan | 0.9915 | 0.9990 | 0.9952 |
-| DDoS | 0.9974 | 0.9996 | **0.9985** |
-| Brute Force | 0.7467 | 0.9607 | **0.8403** |
-| **전체 정확도** | | | **99.64%** |
 
 ---
 
@@ -113,7 +101,7 @@ attacker → target 공격 트래픽 전체를 Suricata의 eth0에서 직접 감
 
 | 컨테이너 | 이미지 | IP | 역할 |
 |---------|-------|----|------|
-| target | vulnerables/web-dvwa | 172.20.0.10 | 공격 대상 (Apache + MySQL + DVWA) |
+| target | vulnerables/web-dvwa | 172.20.0.10 | 공격 대상 (Apache + DVWA) |
 | suricata | jasonish/suricata:latest | (target eth0 공유) | 네트워크 감시 · PCAP 캡처 |
 | attacker | kalilinux/kali-rolling | 172.20.0.20 | 공격 실행 (Scapy, Hydra, Hping3) |
 
@@ -170,7 +158,7 @@ timestamp           src_ip        dst_ip        pred_name  confidence
 | 신뢰도 범위 | 65 ~ 79% |
 | 오탐(False Positive) | 0건 |
 
-**탐지 근거**: SSH 프로토콜은 표준화되어 있어 어느 환경에서도 동일한 플로우 피처를 생성합니다.  
+탐지 근거: SSH 프로토콜은 표준화되어 있어 어느 환경에서도 동일 플로우 피처를 생성
 - dst_port=22, SYN=1, PSH=1, ACK=1
 - tot_fwd ≈ 15, tot_bwd ≈ 17 (SSH 핸드셰이크 + 인증 교환)
 - totlen_fwd ≈ 1700 bytes, totlen_bwd ≈ 2400 bytes (SSH 배너 + 키 교환)
@@ -240,12 +228,7 @@ analyze.py / analyze_attack.py   (예측 결과 및 피처 중요도 분석)
 | SSH Brute 탐지 | 성공 (65~79%) | 실패 |
 | 구조적 한계 | 도메인 갭 | 데이터 불균형 + 피처 노이즈 |
 
----
 
-## 도메인 갭 분석
-
-SSH Brute Force는 탐지되지만 DDoS/PortScan은 탐지되지 않습니다.  
-이는 버그가 아닌 **CIC-IDS2017 기반 모델의 구조적 한계**입니다.
 
 ### 핵심 비교
 
