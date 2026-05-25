@@ -2,9 +2,6 @@
 
 두 가지 공개 데이터셋(CIC-IDS2017, KISTI)으로 학습한 Random Forest 분류기를 Docker 기반 실험 환경의 Suricata IDS에 적용하는 프로젝트.  
 
----
----
-
 ## 프로젝트 개요
 
 상용 IDS(Suricata)는 시그니처 기반 탐지로 알려진 공격만 잡습니다.  
