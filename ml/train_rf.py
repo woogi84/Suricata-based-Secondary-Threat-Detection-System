@@ -43,7 +43,7 @@ FEATURE_COLS = [
     "ACK Flag Count",
 ]
 
-# ── 1. 데이터 로드 ─────────────────────────────────────────────
+# 1. 데이터 로드 
 print("[1/5] 데이터 로드 중...")
 df = pd.read_csv(DATA_PATH)
 print(f"  전체: {len(df):,}행, {df.shape[1]}컬럼")
@@ -57,7 +57,7 @@ for code, name in LABEL_MAP.items():
 X = df[FEATURE_COLS].values
 y = df["Label"].values
 
-# ── 2. Train / Test 분할 ───────────────────────────────────────
+# 2. Train / Test 분할
 print("\n[2/5] Train/Test 분할 (80:20, stratify)...")
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
@@ -71,7 +71,7 @@ for code, name in LABEL_MAP.items():
     pct = cnt / len(y_test) * 100
     print(f"    {code} ({name:>10}): {cnt:>8,}  ({pct:.2f}%)")
 
-# ── 3. 모델 학습 ───────────────────────────────────────────────
+#  3. 모델 학습 
 # class_weight='balanced': 소수 클래스(Brute) 학습 강화
 # n_jobs=-1: 전체 CPU 코어 병렬 사용
 print("\n[3/5] Random Forest 학습 중...")
@@ -89,7 +89,7 @@ rf.fit(X_train, y_train)
 elapsed = time.time() - t0
 print(f"  학습 완료: {elapsed:.1f}초")
 
-# ── 4. 평가 ────────────────────────────────────────────────────
+# 4. 평가
 print("\n[4/5] 모델 평가...")
 y_pred = rf.predict(X_test)
 
@@ -120,7 +120,7 @@ for rank, idx in enumerate(indices, 1):
     bar = "█" * int(importances[idx] * 200)
     print(f"  {rank:2d}. {FEATURE_COLS[idx]:<40s}  {importances[idx]:.4f}  {bar}")
 
-# ── 5. 모델 저장 ───────────────────────────────────────────────
+# 5. 모델 저장
 print(f"\n[5/5] 모델 저장 중...")
 with open(MODEL_OUT, "wb") as f:
     pickle.dump(rf, f)
