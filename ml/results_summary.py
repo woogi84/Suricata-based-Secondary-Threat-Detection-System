@@ -36,7 +36,7 @@ FEATURE_COLS = [
 with open(LABELMAP_PATH, "rb") as f:
     label_map = pickle.load(f)
 
-# ── 1. 탐지 결과 요약 ─────────────────────────────────────────
+# 1. 탐지 결과 요약
 print("=" * 65)
 print("  ML-NIDS 탐지 결과 요약 (CIC-IDS2017 Random Forest)")
 print("=" * 65)
@@ -69,7 +69,7 @@ for code in sorted(label_map.keys()):
 
 print("  └────────────┴──────────┴─────────────┴──────────────┘")
 
-# ── 2. 공격 플로우 상세 ───────────────────────────────────────
+# 2. 공격 플로우 상세
 if len(attacks) > 0:
     print(f"\n   탐지된 공격 플로우 (상위 20건)")
     print()
@@ -94,7 +94,7 @@ if len(attacks) > 0:
         bar = "█" * int(cnt / max(dist) * 30) if max(dist) > 0 else ""
         print(f"    {lbl:>8}  {cnt:>4}건  {bar}")
 
-# ── 3. 피처 분포 (공격 vs 정상 비교) ─────────────────────────
+# 3. 피처 분포 (공격 vs 정상 비교)
 print(f"\n{'=' * 65}")
 print("  피처 분포 비교 (공격 vs 정상)")
 print("=" * 65)
@@ -119,7 +119,7 @@ if avail:
             diff = "◀" if abs(a_med - b_med) > 1 else ""
         print(f"  {feat:<30}  {b_str}  {a_str}  {diff}")
 
-# ── 4. 모델 피처 중요도 ───────────────────────────────────────
+# 4. 모델 피처 중요도
 print(f"\n{'=' * 65}")
 print("  모델 피처 중요도 (Random Forest)")
 print("=" * 65)
