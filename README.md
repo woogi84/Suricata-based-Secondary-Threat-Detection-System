@@ -205,7 +205,6 @@ analyze.py / analyze_attack.py   (예측 결과 및 피처 중요도 분석)
 | protocol | `proto` (TCP=6, UDP=17, ICMP=1) |
 | eventCount | `flow.pkts_toserver + flow.pkts_toclient` |
 | duration | `flow.age` or `flow.end - flow.start` |
-| packetSize | `flow.bytes_toserver + flow.bytes_toclient` |
 
 ### 실패 원인 요약
 
