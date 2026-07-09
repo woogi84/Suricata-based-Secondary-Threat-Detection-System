@@ -66,7 +66,7 @@ Python cicflowmeter는 ACK 패킷도 카운트합니다.
 | tot_bwd_pkts | 중간값 **1** | 중간값 **1** | 동일 |
 | SYN Flag Count | 1 | 1 | 동일 |
 
-원인1. 타깃 서비스 응답 패턴
+타깃 서비스 응답 패턴
 CIC 학습 환경의 타깃 서버에는 SSH, FTP 등 실제 서비스가 동작 중이기에
 열린 포트에서는 SYN-ACK + 서비스 배너(6바이트 이상)를 응답해  
 `bwd_pkt_len_mean` 중간값이 6 bytes로 나옴.
